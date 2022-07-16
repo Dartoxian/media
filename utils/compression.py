@@ -8,12 +8,28 @@ from . import dirs
 log = logging.getLogger(__name__)
 
 
-def _compress_file(input, output):
-    proc = subprocess.Popen(
-        f"ffmpeg -nostats -loglevel 0 -i {input} -map 0 -c:s copy -vcodec libx264 -crf 18 {output}".split())
+def _compress_file(input, output, attempt=1):
+    if (attempt == 4):
+        raise ValueError(f"Attempted to convert {input} 3 times and failed each time")
+    cmd = [
+        f"ffmpeg",
+        "-y",
+        "-nostats",
+        "-loglevel", "0",
+        "-i", input,
+        "-map", "0",
+        "-c:s", "copy",
+        "-vcodec", "libx264",
+        "-crf", "18",
+        output
+    ]
+    proc = subprocess.Popen(cmd)
+    log.info(f"Running {subprocess.list2cmdline(proc.args)}")
     (results, errors) = proc.communicate()
     if proc.returncode != 0:
         log.info("ffmpeg status code: %d" % proc.returncode)
+        _compress_file(input, output, attempt + 1)
+        return
 
     if errors is not None:
         if len(errors) != 0:
@@ -36,7 +52,7 @@ def watch_for_compression():
             for f in os.listdir(dirs.uncompressed_dir(dvdName)):
                 inputFile = f"{dirs.uncompressed_dir(dvdName)}/{f}"
                 if not os.path.exists(inputFile):
-                    #I probably tidied it up
+                    # I probably tidied it up
                     continue
                 log.info(f"Found {f} in {dvdName} ready for compression")
                 out = f"{dirs.compressed_dir(dvdName)}/{f}"
