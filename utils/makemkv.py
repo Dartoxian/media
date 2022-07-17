@@ -1,9 +1,11 @@
 import csv
 import logging
 import os
+import string
 import subprocess
 import time
 import datetime
+import random
 
 from typing import List
 
@@ -81,7 +83,8 @@ class MakeMkv:
         self.log.info("Analysing disc")
         parser = self._run("makemkvcon info -r --minlength=20")
 
-        self._dvdName = parser.get_rows("DRV:0")[0][5]
+        random_suffix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+        self._dvdName = parser.get_rows("DRV:0")[0][5] + random_suffix
 
     def _info(self):
         self.log.info("Analysing disc")
