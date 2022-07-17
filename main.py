@@ -33,6 +33,6 @@ if __name__ == "__main__":
     while True:
         wait_for_disc()
 
-        MakeMkv().rip()
+        MakeMkv().ripAll()
 
         eject()

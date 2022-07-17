@@ -48,7 +48,6 @@ def watch_for_compression():
                 # I probably tidied it up
                 continue
             os.makedirs(dirs.compressed_dir(dvdName), exist_ok=True)
-            os.makedirs(dirs.ready_dir(dvdName), exist_ok=True)
             for f in os.listdir(dirs.uncompressed_dir(dvdName)):
                 inputFile = f"{dirs.uncompressed_dir(dvdName)}/{f}"
                 if not os.path.exists(inputFile):
@@ -59,7 +58,9 @@ def watch_for_compression():
                 if os.path.exists(out):
                     os.remove(out)
                 _compress_file(inputFile, out)
-                os.rename(f"{dirs.compressed_dir(dvdName)}/{f}", f"{dirs.ready_dir(dvdName)}/{f}")
                 log.info(f"Finished compressing {f} in {dvdName}")
+            log.info(f"Finished compressing {dvdName}")
+            os.rename(f"{dirs.compressed_dir(dvdName)}", f"{dirs.ready_dir(dvdName)}")
+            os.rmdir(dirs.compressed_dir(dvdName))
         log.info("Compression cycle sleeping...")
         time.sleep(30)

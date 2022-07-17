@@ -67,9 +67,25 @@ class MakeMkv:
                 os.rename(f"{dirs.raw_dir(self._dvdName)}/{f}", f"{dirs.uncompressed_dir(self._dvdName)}/{f}")
         os.rmdir(dirs.raw_dir(self._dvdName))
 
+    def ripAll(self):
+        # New disc, reload info
+        self._read_dvd_name()
+        os.makedirs(dirs.raw_dir(self._dvdName), exist_ok=True)
+        self._ripAll()
+        for f in os.listdir(dirs.raw_dir(self._dvdName)):
+            os.makedirs(dirs.uncompressed_dir(self._dvdName), exist_ok=True)
+            os.rename(f"{dirs.raw_dir(self._dvdName)}/{f}", f"{dirs.uncompressed_dir(self._dvdName)}/{f}")
+        os.rmdir(dirs.raw_dir(self._dvdName))
+
+    def _read_dvd_name(self):
+        self.log.info("Analysing disc")
+        parser = self._run("makemkvcon info -r --minlength=20")
+
+        self._dvdName = parser.get_rows("DRV:0")[0][5]
+
     def _info(self):
         self.log.info("Analysing disc")
-        parser = self._run("makemkvcon info -r disc:0")
+        parser = self._run("makemkvcon info -r disc:0 --minlength=20")
 
         self._dvdName = parser.get_rows("DRV:0")[0][5]
 
@@ -93,7 +109,7 @@ class MakeMkv:
             durations[titleNo] = titleDur
 
         max_duration = max(durations.values())
-        required_length = max_duration * 0.75
+        required_length = max_duration * 0.6
         self.log.info(
             f"Longest clip is {max_duration} seconds, required length to be extracted is {required_length} seconds")
 
@@ -103,7 +119,11 @@ class MakeMkv:
 
     def _ripTitle(self, title: str):
         self.log.info(f"Ripping {title}")
-        self._run(f"makemkvcon mkv disc:0 {title} {dirs.raw_dir(self._dvdName)} --noscan")
+        self._run(f"makemkvcon mkv disc:0 {title} {dirs.raw_dir(self._dvdName)} --noscan --minlength=20")
+
+    def _ripAll(self):
+        self.log.info(f"Ripping all")
+        self._run(f"makemkvcon mkv disc:0 all {dirs.raw_dir(self._dvdName)} --noscan --minlength=20")
 
     def _run(self, cmd):
         self.log.info(f"Executing {cmd}")
