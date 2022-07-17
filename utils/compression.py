@@ -61,6 +61,6 @@ def watch_for_compression():
                 log.info(f"Finished compressing {f} in {dvdName}")
             log.info(f"Finished compressing {dvdName}")
             os.rename(f"{dirs.compressed_dir(dvdName)}", f"{dirs.ready_dir(dvdName)}")
-            os.rmdir(dirs.compressed_dir(dvdName))
+            os.rmdir(dirs.uncompressed_dir(dvdName))
         log.info("Compression cycle sleeping...")
         time.sleep(30)
